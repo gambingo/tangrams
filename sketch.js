@@ -26,7 +26,7 @@ function draw() {
         shapes[i].move()
         shapes[i].display()
     }
-    r = r + 0.005
+    // r = r + 0.005
 }
 
 function mousePressed() {
@@ -41,6 +41,10 @@ function mouseReleased() {
     }
 }
 
+// function mouseClicked() {
+//     console.log(mouseX, mouseY)
+// }
+
 
 // OBJECTS
 class Shape {
@@ -53,7 +57,6 @@ class Shape {
         this.offsetX = 0
         this.offsetY = 0
         this.dragging = false
-        this.rollover = false
     }
 
     mousePressed() {
@@ -76,10 +79,9 @@ class Shape {
     }
 
     fillColor() {
-        this.rollover = this.mouseWithinShape()
         if (this.dragging) {
             fill(50);
-        } else if (this.rollover) {
+        } else if (this.mouseWithinShape()) {
             fill(100);
         } else {
             fill(175, 200);
@@ -94,8 +96,11 @@ class Square extends Shape {
     }
 
     mouseWithinShape() {
-        if (mouseX > this.x && mouseX < this.x + this.l &&
-            mouseY > this.y && mouseY < this.y + this.l) {
+        var translatedMouseX = mouseX - this.x
+        var translatedMouseY = mouseY - this.y
+        
+        if (translatedMouseX > -this.l/2 && translatedMouseX < this.l/2 &&
+            translatedMouseY > -this.l/2 && translatedMouseY < this.l/2) {
                 return true
             } else {
                 return false
@@ -103,11 +108,12 @@ class Square extends Shape {
     }
 
     display() {
+        push()
         translate(this.x, this.y)
         rotate(r)
         this.fillColor()
         rect(0, 0, this.l, this.l)
-        resetMatrix()
+        pop()
     }
 }
 
@@ -116,7 +122,7 @@ class Triangle extends Shape {
     constructor(x, y, l) {
         super(x, y, l)
         this.otherVertices()
-        this.area = areaOfATriangle(this.x, this.y, this.x2, this.y2, 
+        this.area = areaOfATriangle(this.x1, this.y1, this.x2, this.y2, 
             this.x3, this.y3)
 
     }
@@ -125,20 +131,23 @@ class Triangle extends Shape {
         // All vertices relative to the center at (0, 0)
         let h = this.l * Math.sqrt(3)/2
         this.x1 = 0
-        this.y1 = h/2
+        this.y1 = -h/2
         this.x2 = this.l/2
-        this.y2 = -h/2
+        this.y2 = h/2
         this.x3 = -this.l/2
-        this.y3 = -h/2
+        this.y3 = h/2
     }
 
     mouseWithinShape() {
-        var area1 = areaOfATriangle(mouseX, mouseY, this.x2, this.y2, 
-            this.x3, this.y3)
-        var area2 = areaOfATriangle(this.x1, this.y1, mouseX, mouseY, 
-            this.x3, this.y3)
+        var translatedMouseX = mouseX - this.x
+        var translatedMouseY = mouseY - this.y
+        
+        var area1 = areaOfATriangle(translatedMouseX, translatedMouseY,
+            this.x2, this.y2, this.x3, this.y3)
+        var area2 = areaOfATriangle(this.x1, this.y1, 
+            translatedMouseX, translatedMouseY, this.x3, this.y3)
         var area3 = areaOfATriangle(this.x1, this.y1, this.x2, this.y2, 
-            mouseX, mouseY)
+            translatedMouseX, translatedMouseY)
 
         if (area1 + area2 + area3 <= this.area) {
             return true
@@ -148,141 +157,15 @@ class Triangle extends Shape {
     }
 
     display() {
+        push()
         translate(this.x, this.y)
         rotate(r)
         this.otherVertices()
         this.fillColor()
         triangle(this.x1, this.y1, this.x2, this.y2, this.x3, this.y3)
-        resetMatrix()
+        pop()
     }
 }
-
-
-// class Rectangle {
-//     constructor(x, y, w, h) {
-//         this.x = x
-//         this.y = y
-//         this.width = w
-//         this.height = h
-//         this.offsetX = 0
-//         this.offsetY = 0
-//         this.dragging = false
-//         this.rollover = false   // TODO
-//     }
-
-//     mousePressed() {
-//         if (mouseX > this.x && mouseX < this.x + this.width &&
-//             mouseY > this.y && mouseY < this.y + this.height) {
-//                 this.dragging = true
-//                 this.offsetX = this.x - mouseX
-//                 this.offsetY = this.y - mouseY
-//             }
-//     }
-
-//     mouseReleased() {
-//         this.dragging = false
-//     }
-
-//     move() {
-//         if (this.dragging) {
-//             this.x = mouseX + this.offsetX;
-//             this.y = mouseY + this.offsetY;
-//           }
-//     }
-
-//     display() {  
-//         // Color
-//         stroke(0);
-//         if (this.dragging) {
-//             fill (50);
-//         } else if (this.rollover) {
-//             fill(100);
-//         } else {
-//             fill(175, 200);
-//         }
-//         rect(this.x, this.y, this.width, this.height)
-//     }
-// }
-
-
-// class Square extends Rectangle {
-//     constructor(x, y, l) {
-//         super(x, y, l, l)
-//     }
-// }
-
-
-// class Triangle {
-//     constructor(x, y, l) {
-//         // x, y: top vertex
-//         // l: side length
-//         this.x1 = x
-//         this.y1 = y
-//         this.l = l
-//         this.otherVertices(x, y)
-//         this.area = areaOfATriangle(this.x1, this.y1, this.x2, this.y2, 
-//             this.x3, this.y3)
-//         this.dragging = false
-//         this.offsetX = 0
-//         this.offsetY = 0
-//     }
-
-//     otherVertices(x, y) {
-//         this.x2 = x - this.l/2
-//         this.y2 = y + this.l*Math.sqrt(3)/2
-//         this.x3 = x + this.l/2
-//         this.y3 = y + this.l*Math.sqrt(3)/2
-//     }
-
-//     mouseWithinShape() {
-//         var area1 = areaOfATriangle(mouseX, mouseY, this.x2, this.y2, 
-//             this.x3, this.y3)
-//         var area2 = areaOfATriangle(this.x1, this.y1, mouseX, mouseY, 
-//             this.x3, this.y3)
-//         var area3 = areaOfATriangle(this.x1, this.y1, this.x2, this.y2, 
-//             mouseX, mouseY)
-
-//         if (area1 + area2 + area3 <= this.area) {
-//             return true
-//         } else {
-//             return false
-//         }
-//     }
-
-//     mousePressed() {
-//         if (this.mouseWithinShape()) {
-//             this.dragging = true
-//             this.offsetX = this.x1 - mouseX
-//             this.offsetY = this.y1 - mouseY
-//         }
-//     }
-
-//     mouseReleased() {
-//         this.dragging = false
-//     }
-
-//     move() {
-//         if (this.dragging) {
-//             this.x1 = mouseX + this.offsetX
-//             this.y1 = mouseY + this.offsetY
-//             this.otherVertices(this.x1, this.y1)
-//           }
-//     }
-
-//     display() {  
-//         // Color
-//         stroke(0);
-//         if (this.dragging) {
-//             fill(50);
-//         } else if (this.rollover) {
-//             fill(100);
-//         } else {
-//             fill(175, 200);
-//         }
-//         triangle(this.x1, this.y1, this.x2, this.y2, this.x3, this.y3)
-//     }
-
-// }
 
 
 function areaOfATriangle(x1, y1, x2, y2, x3, y3) {
