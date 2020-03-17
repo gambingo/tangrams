@@ -1,7 +1,8 @@
 let width = window.innerWidth
 let height = window.innerHeight
 let shapes = []
-let r = 0
+let grid_width = 10
+
 
 function setup() {
     createCanvas(width, height)
@@ -26,7 +27,6 @@ function draw() {
         shapes[i].move()
         shapes[i].display()
     }
-    // r = r + 0.005
 }
 
 function mousePressed() {
@@ -41,9 +41,11 @@ function mouseReleased() {
     }
 }
 
-// function mouseClicked() {
-//     console.log(mouseX, mouseY)
-// }
+function keyPressed() {
+    for (let i = 0; i < shapes.length; i++) {
+        shapes[i].keyPressed()
+    }
+}
 
 
 // OBJECTS
@@ -57,6 +59,7 @@ class Shape {
         this.offsetX = 0
         this.offsetY = 0
         this.dragging = false
+        this.rotation = 0
     }
 
     mousePressed() {
@@ -69,6 +72,21 @@ class Shape {
 
     mouseReleased() {
         this.dragging = false
+    }
+
+    keyPressed() {
+        if (this.dragging) {
+            if (keyCode == 32) {
+                this.rotation = this.rotation + PI/6
+            }
+        }
+    }
+
+    snapToGrid() {
+        if (!this.dragging) {
+            this.x = Math.round(this.x/grid_width)*grid_width
+            this.y = Math.round(this.y/grid_width)*grid_width
+        }
     }
 
     move() {
@@ -109,8 +127,9 @@ class Square extends Shape {
 
     display() {
         push()
+        this.snapToGrid()
         translate(this.x, this.y)
-        rotate(r)
+        rotate(this.rotation)
         this.fillColor()
         rect(0, 0, this.l, this.l)
         pop()
@@ -158,8 +177,9 @@ class Triangle extends Shape {
 
     display() {
         push()
+        this.snapToGrid()
         translate(this.x, this.y)
-        rotate(r)
+        rotate(this.rotation)
         this.otherVertices()
         this.fillColor()
         triangle(this.x1, this.y1, this.x2, this.y2, this.x3, this.y3)
