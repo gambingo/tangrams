@@ -1,9 +1,12 @@
 let width = window.innerWidth
 let height = window.innerHeight
 let shapes = []
+let r = 0
 
 function setup() {
     createCanvas(width, height)
+    noStroke()
+    rectMode(CENTER)
 
     for (let i = 0; i < 5; i++) {
         let side_length = 100
@@ -23,6 +26,7 @@ function draw() {
         shapes[i].move()
         shapes[i].display()
     }
+    r = r + 0.005
 }
 
 function mousePressed() {
@@ -73,7 +77,6 @@ class Shape {
 
     fillColor() {
         this.rollover = this.mouseWithinShape()
-        stroke(0);
         if (this.dragging) {
             fill(50);
         } else if (this.rollover) {
@@ -100,8 +103,11 @@ class Square extends Shape {
     }
 
     display() {
+        translate(this.x, this.y)
+        rotate(r)
         this.fillColor()
-        rect(this.x, this.y, this.l, this.l)
+        rect(0, 0, this.l, this.l)
+        resetMatrix()
     }
 }
 
@@ -109,25 +115,29 @@ class Square extends Shape {
 class Triangle extends Shape {
     constructor(x, y, l) {
         super(x, y, l)
-        this.otherVertices(this.x, this.y)
+        this.otherVertices()
         this.area = areaOfATriangle(this.x, this.y, this.x2, this.y2, 
             this.x3, this.y3)
 
     }
 
-    otherVertices(x, y) {
-        this.x2 = x - this.l/2
-        this.y2 = y + this.l*Math.sqrt(3)/2
-        this.x3 = x + this.l/2
-        this.y3 = y + this.l*Math.sqrt(3)/2
+    otherVertices() {
+        // All vertices relative to the center at (0, 0)
+        let h = this.l * Math.sqrt(3)/2
+        this.x1 = 0
+        this.y1 = h/2
+        this.x2 = this.l/2
+        this.y2 = -h/2
+        this.x3 = -this.l/2
+        this.y3 = -h/2
     }
 
     mouseWithinShape() {
         var area1 = areaOfATriangle(mouseX, mouseY, this.x2, this.y2, 
             this.x3, this.y3)
-        var area2 = areaOfATriangle(this.x, this.y, mouseX, mouseY, 
+        var area2 = areaOfATriangle(this.x1, this.y1, mouseX, mouseY, 
             this.x3, this.y3)
-        var area3 = areaOfATriangle(this.x, this.y, this.x2, this.y2, 
+        var area3 = areaOfATriangle(this.x1, this.y1, this.x2, this.y2, 
             mouseX, mouseY)
 
         if (area1 + area2 + area3 <= this.area) {
@@ -138,9 +148,12 @@ class Triangle extends Shape {
     }
 
     display() {
-        this.otherVertices(this.x, this.y)
+        translate(this.x, this.y)
+        rotate(r)
+        this.otherVertices()
         this.fillColor()
-        triangle(this.x, this.y, this.x2, this.y2, this.x3, this.y3)
+        triangle(this.x1, this.y1, this.x2, this.y2, this.x3, this.y3)
+        resetMatrix()
     }
 }
 
